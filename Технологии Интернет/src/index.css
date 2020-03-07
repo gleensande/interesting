@@ -1,0 +1,139 @@
+/*linear-gradient(to right, red, orange)*/
+
+* {
+  box-sizing: border-box;
+  font-family: Ubuntu;
+}
+
+input[type="text"] {
+  border:none;
+  background-image:none;
+  background-color:transparent;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  padding: 2px;
+
+  height: 40px;
+
+  font-size: 20px;
+  font-weight: 300;
+  width: 100%;
+
+  border-bottom: 2px solid transparent;
+
+  max-width: 
+}
+
+input[type="text"]:hover {
+  border-bottom: 2px dashed rgb(223, 221, 221);
+}
+
+input[type="text"]:focus {
+  border-bottom: 2px solid rgb(223, 221, 221);
+}
+
+::placeholder {
+  font-style: italic;  
+}
+
+#application {
+  padding: 15px;
+}
+
+.workflow_header {
+  margin-bottom: 15px;
+}
+
+.workflow {
+  width: 100%;
+}
+
+.stage {
+  display: grid;
+  grid-template-columns: 15px auto 15px;
+  grid-gap: 5px;
+  grid-template-rows: 40px auto 15px;
+
+  float: left;
+  margin-right: 15px;
+  margin-bottom: 15px;
+
+  width: 300px;
+  min-height: 450px;
+  background-color: rgb(245, 245, 245);
+  border-radius: 3px;
+  box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
+
+  border-top: 5px solid red;
+}
+
+.add_stage_button {
+  float: left;
+  margin-right: 15px;
+
+  width: 300px;
+  height: 450px;
+  background-color: white;
+  border-radius: 3px;
+
+  border: 2px dashed rgb(223, 221, 221);
+
+  user-select: none;
+
+  line-height: 450px;
+  text-align: center;
+}
+
+.add_stage_button:hover {
+  cursor: pointer;
+}
+
+.tasks_header {
+  grid-column: 2;
+  border-bottom-color: rgb(245, 245, 245);
+}
+
+.tasks {
+  grid-row: 2;
+  grid-column: 2;
+}
+
+.add_task_button {
+  min-height: 40px;
+  width: 100%;
+
+  margin-bottom: 5px;
+
+  background-color: white;
+  border-radius: 5px;
+  border: 2px dashed rgb(223, 221, 221);
+
+  user-select: none;
+
+  line-height: 40px;
+  text-align: center;
+}
+
+.add_task_button:hover {
+  cursor: pointer;
+}
+
+.task {
+  min-height: 50px;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+  text-overflow: ellipsis;
+  hyphens: auto;
+
+  width: 100%;
+
+  margin-bottom: 5px;
+
+  padding: 5px;
+
+  background-color: white;
+  border-radius: 5px;
+  border: 1px solid rgb(223, 221, 221);
+}

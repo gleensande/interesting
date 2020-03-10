@@ -1,0 +1,14 @@
+dUc1_dt = 0
+dUc2_dt = 0
+dUcb_dt = 0
+dIl1_dt = 0
+Uc1 = 0
+Uc2 = 0
+Ucb = 0
+Il1 = 0
+phi_1 = 0
+phi_2 = 0
+phi_3 = 0
+phi_4 = 0
+phi_5 = 0
+Ie1 = 0

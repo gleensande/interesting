@@ -1,0 +1,22 @@
+C1 = 0.01e-6
+C2 = 0.1e-6
+E = 10
+L1 = 0.001
+R1 = 1000
+It = 1e-12
+Cb = 2e-12
+MFt = 0.026
+Ru = 1e6
+Rb = 20
+
+T = 1e-3
+dt_start = 1e-15
+dt_min = 1e-15
+
+eps = 1e-6
+max_steps = 7
+
+xi_1 = 1e-2
+xi_2 = 2e-2
+
+racing_steps = 3

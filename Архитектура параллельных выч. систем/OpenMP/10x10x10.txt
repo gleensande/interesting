@@ -1,0 +1,12 @@
+Threads: 1
+Time: 0.212301sec.
+
+Threads: 2
+Time: 0.116146sec.
+
+Threads: 4
+Time: 0.125866sec.
+
+Threads: 8
+Time: 0.211664sec.
+

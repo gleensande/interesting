@@ -1,17 +1,72 @@
 #include <stdio.h>
-#include "main.hpp"
-#include "matrix.hpp"
 #include <stdlib.h>
+#include "main.h"
+#include "cuda.hpp"
+#include "cuda_runtime.hpp"
 
 // матрица состояний пластины
 double p[I_MAX + 1][J_MAX + 1][K_MAX + 1];
+
+void substract_rows_Gauss(int i_from, int i_to, double* A, int size, double* fr) {
+    double coeff = A[size * i_to + i_from];
+    for (int j = 0; j < size; j++) {
+        A[size * i_to + j] -= A[size * i_from + j] * coeff;
+    }
+    fr[i_to] -= fr[i_from] * coeff;
+}
+
+// метод Гаусса
+__global__ void Gauss(double* A, int size, double* fr) {
+    double coeff;
+
+    // forward
+    for (int i = 0; i < size - 1; i++) {
+        // > ---- make diag one ----
+        coeff = A[i * size + i];
+        for (int j = 0; j < size; j++) {
+            A[i * size + j] /= coeff;
+        }
+        fr[i] /= coeff;
+        // < ---- make diag one ----
+
+        for (int k = i + 1; k < size; k++) {            
+            // > ---- substract rows ----
+            double coeff = A[size * k + i];
+            for (int j = 0; j < size; j++) {
+                A[size * k + j] -= A[size * i + j] * coeff;
+            }
+            fr[k] -= fr[i] * coeff;
+            // < ---- substract rows ----
+        }
+    }
+    // > ---- make diag one ----
+    coeff = A[(size - 1) * size + (size - 1)];
+    for (int j = 0; j < size; j++) {
+        A[(size - 1) * size + j] /= coeff;
+    }
+    fr[(size - 1)] /= coeff;
+    // < ---- make diag one ----
+
+    // backward
+    for (int i = size - 1; i > 0 ; i--) {
+        for (int k = i - 1; k >= 0; k--) {
+            // > ---- substract rows ----
+            double coeff = A[size * k + i];
+            for (int j = 0; j < size; j++) {
+                A[size * k + j] -= A[size * i + j] * coeff;
+            }
+            fr[k] -= fr[i] * coeff;
+            // < ---- substract rows ----
+        }
+    }
+}
 
 // напечатать состояние
 void print_state(int k) {
     printf("Матрица p:\n");
     for (int i = 0; i <= I_MAX; i++) {
         for (int j = 0; j <= J_MAX; j++) {
-            printf("%6.lf ", p[i][j][k]);
+            printf("%8.3lf ", p[i][j][k]);
         }
         printf("\n");
     }
@@ -41,17 +96,31 @@ void begin_state() {
 
 }
 
-void prepare_state(double* c, double* A, int size, int cmax, int k) {
+void print_matrix(double* A, int rows, int cols, char* name) {
+    printf("%s\n", name);
+    /*for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            printf("%5.2lf ", A[cols * i + j]);
+        }
+        printf("\n");
+    }*/
+    for (int i = 0; i < rows * cols; i++) {
+        printf("%lf\n", A[i]);
+    }
+    printf("\n");
+}
+
+void prepare_state(double* C, double* A, int size, int cmax, int k) {
     // Задание граничных условий в матрице
 
     // верх и низ
     // граничное условие первого рода
     for (int m = 0; m <= J_MAX; m++) {
         A[m * size + m] = 1;
-        c[m * size + 0] = T_UP();
+        C[m] = T_UP();
 
         A[(cmax - m) * size + (cmax - m)] = 1;
-        c[(cmax - m) * size + 0] = T_BOTTOM();
+        C[cmax - m] = T_BOTTOM();
     }
 
     // левая граница - каждый J_MAX + 1 -ый элемент
@@ -59,14 +128,14 @@ void prepare_state(double* c, double* A, int size, int cmax, int k) {
     for (int m = 0; m <= cmax; m += J_MAX + 1) {
         A[m * size + m] = 1;
         A[m * size + (m + 1)] = -1;
-        c[m * size + 0] = 0;
+        C[m] = 0;
     }
 
     // правая граница - каждый J_MAX -ый элемент
     // граничное условие первого рода
     for (int m = J_MAX; m <= cmax; m += J_MAX + 1) {
         A[m * size + m] = 1;
-        c[m * size + 0] = T_RIGHT();
+        C[m] = T_RIGHT();
     }
 
     // неявная разностная схема
@@ -86,7 +155,7 @@ void prepare_state(double* c, double* A, int size, int cmax, int k) {
             A[size * (q+m) + q+m-J_MAX-1] =Tiv_j_coef;          // T i-1,j
             A[size * (q+m) + q+m+1] = Ti_jv_coef;               // T i,j+1
             A[size * (q+m) + q+m-1] = Ti_jv_coef;               // T i,j-1
-            c[size * (q+m) + 0] = p[(q+m)/(J_MAX+1)][(q+m)%(J_MAX+1)][k-1]*T_prev_coeff;
+            C[q+m] = p[(q+m)/(J_MAX+1)][(q+m)%(J_MAX+1)][k-1]*T_prev_coeff;
         }
     }
 
@@ -106,37 +175,47 @@ void count_state(int k) {
     int size = (I_MAX + 1) * (J_MAX + 1);
     int cmax = size - 1;    // максимальный номер строки в векторе с
 
-    double* c = (double*)malloc(sizeof(double) * size * 1);
+    double* C = (double*)malloc(sizeof(double) * size);
     double* A = (double*)malloc(sizeof(double) * size * size);
 
-    prepare_state(c, A, size, cmax, k);
+    prepare_state(C, A, size, cmax, k);
 
     // ----------------- CUDA 2. Выделение памяти девайса и заполнение ее -----------------
-    // TODO
+    double *dC, *dA, *dsize; 
+    cudaMalloc((void**)(&dC), sizeof(double) * size);
+    cudaMalloc((void**)(&dA), sizeof(double) * size * size);
+    cudaMalloc((void**)(&dsize), sizeof(int));
 
     // --------------------- CUDA 3. Перенос данных из хоста девайсу ---------------------
-    // TODO
+    cudaMemcpy((void*)dC, (void*)C, sizeof(double) * size, cudaMemcpyToDevice);
+    cudaMemcpy((void*)dA, (void*)A, sizeof(double) * size * size, cudaMemcpyToDevice);
+    cudaMemcpy((void*)dsize, (void*)(&size)), sizeof(int));
 
     // ----------------------- CUDA 4. Вызов ядра для решения СЛАУ -----------------------
-    //A.print(&c, "Исходное уравнение:");
-    Gauss(A, A_rows, A_cols, c, c_rows, c_cols);
+    Gauss<<<1,1>>>(dA, dsize, dC);
+    
+    // Wait for GPU to finish before accessing on host
+    cudaDeviceSynchronize();
+
 
     // --------------------- CUDA 5. Перенос данных из девайса хосту ---------------------
-    // TODO
+    cudaMemcpy((void*)C, (void*)dC, sizeof(double) * size, cudaMemcpyToHost);
 
-    // перенос значений из вектора c в матрицу p
+    // перенос значений из вектора C в матрицу p
     int gi = 0;
     for (int i = 0; i < I_MAX + 1; i++) {
         for (int j = 0; j < J_MAX + 1; j++) {
-            p[i][j][k] = c[size * gi + 0];
+            p[i][j][k] = C[gi];
             gi++;
         }
     }
 
     // ------------------------ CUDA 6. Очистка всех видов памяти ------------------------
-    // TODO
+    cudaFree(dC);
+    cudaFree(dA);
+    cudaFree(dsize);
 
-    free(c);
+    free(C);
     free(A);
 }
 

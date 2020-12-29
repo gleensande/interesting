@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "main.h"
-#include "cuda.hpp"
-#include "cuda_runtime.hpp"
+//#include "cuda.h"
+#include "cuda_runtime.h"
 
 // матрица состояний пластины
 double p[I_MAX + 1][J_MAX + 1][K_MAX + 1];
@@ -181,25 +181,22 @@ void count_state(int k) {
     prepare_state(C, A, size, cmax, k);
 
     // ----------------- CUDA 2. Выделение памяти девайса и заполнение ее -----------------
-    double *dC, *dA, *dsize; 
+    double *dC, *dA; 
     cudaMalloc((void**)(&dC), sizeof(double) * size);
     cudaMalloc((void**)(&dA), sizeof(double) * size * size);
-    cudaMalloc((void**)(&dsize), sizeof(int));
 
     // --------------------- CUDA 3. Перенос данных из хоста девайсу ---------------------
-    cudaMemcpy((void*)dC, (void*)C, sizeof(double) * size, cudaMemcpyToDevice);
-    cudaMemcpy((void*)dA, (void*)A, sizeof(double) * size * size, cudaMemcpyToDevice);
-    cudaMemcpy((void*)dsize, (void*)(&size)), sizeof(int));
+    cudaMemcpy((void*)dC, (void*)C, sizeof(double) * size, cudaMemcpyHostToDevice);
+    cudaMemcpy((void*)dA, (void*)A, sizeof(double) * size * size, cudaMemcpyHostToDevice);
 
     // ----------------------- CUDA 4. Вызов ядра для решения СЛАУ -----------------------
-    Gauss<<<1,1>>>(dA, dsize, dC);
+    Gauss<<<1,1>>>(dA, size, dC);
     
     // Wait for GPU to finish before accessing on host
     cudaDeviceSynchronize();
 
-
     // --------------------- CUDA 5. Перенос данных из девайса хосту ---------------------
-    cudaMemcpy((void*)C, (void*)dC, sizeof(double) * size, cudaMemcpyToHost);
+    cudaMemcpy((void*)C, (void*)dC, sizeof(double) * size, cudaMemcpyDeviceToHost);
 
     // перенос значений из вектора C в матрицу p
     int gi = 0;
@@ -213,7 +210,6 @@ void count_state(int k) {
     // ------------------------ CUDA 6. Очистка всех видов памяти ------------------------
     cudaFree(dC);
     cudaFree(dA);
-    cudaFree(dsize);
 
     free(C);
     free(A);

@@ -22,7 +22,7 @@
 
 // граничные условия
 #define T_LEFT(neighbour) (neighbour)
-#define T_BOTTOM() (800.0)
+#define T_BOTTOM() (20.0)
 #define T_RIGHT() (800.0)
 #define T_UP() (800.0)
 

@@ -32,7 +32,7 @@ __global__ void Gauss(double* A, int size, double* fr) {
         for (int k = i + 1; k < size; k++) {            
             // > ---- substract rows ----
             double coeff = A[size * k + i];
-            for (int j = 0; j < size; j++) {
+            for (int j = threadIdx.x; j < size; j+=blockDim.x) {
                 A[size * k + j] -= A[size * i + j] * coeff;
             }
             fr[k] -= fr[i] * coeff;
@@ -52,7 +52,7 @@ __global__ void Gauss(double* A, int size, double* fr) {
         for (int k = i - 1; k >= 0; k--) {
             // > ---- substract rows ----
             double coeff = A[size * k + i];
-            for (int j = 0; j < size; j++) {
+            for (int j = threadIdx.x; j < size; j+=blockDim.x) {
                 A[size * k + j] -= A[size * i + j] * coeff;
             }
             fr[k] -= fr[i] * coeff;
@@ -190,7 +190,7 @@ void count_state(int k) {
     cudaMemcpy((void*)dA, (void*)A, sizeof(double) * size * size, cudaMemcpyHostToDevice);
 
     // ----------------------- CUDA 4. Вызов ядра для решения СЛАУ -----------------------
-    Gauss<<<1,1>>>(dA, size, dC);
+    Gauss<<<1,32>>>(dA, size, dC);
     
     // Wait for GPU to finish before accessing on host
     cudaDeviceSynchronize();

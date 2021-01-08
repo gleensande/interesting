@@ -1,4 +1,5 @@
 #include "neuron.hpp"
+#include <ctime>
 
 // конструктор нейрона по _inputs_num - количеству входов
 Perceptron::Perceptron(int _inputs_num) {
@@ -45,17 +46,21 @@ void Perceptron::learn(vector< vector<double> >& X_learn, vector<bool>& D, int N
         return;
     }
 
-    // srand();
+    srand(time(NULL));
     for (size_t i = 0; i < inputs_num + 1; i++) {
         W[i] = rand() % 1000;
         W[i] /= 100;
     }
 
-    cout << "Start W: (W[0] is the last)" << endl;
-    for (size_t i = 0; i < inputs_num + 1; i++) {
+    cout << "Start W: ";
+    cout << W[inputs_num] << " ";
+    for (size_t i = 0; i < inputs_num; i++) {
         cout << W[i] << " ";
     }
     cout << endl << endl;
+
+    // для подсчета функции активации
+    vector<bool> Y(D.size());
 
     for (size_t k = 0; k < X_learn.size(); k++) {
         bool stop = false;
@@ -76,12 +81,19 @@ void Perceptron::learn(vector< vector<double> >& X_learn, vector<bool>& D, int N
                     W[inputs_num] -= 1;
                 }
 
-                cout << "Changed W: (W[0] is the last)" << endl;
-                for (size_t i = 0; i < inputs_num + 1; i++) {
+                cout << "N = " << i << ". ";
+                cout << W[inputs_num] << " ";
+                for (size_t i = 0; i < inputs_num; i++) {
                     cout << W[i] << " ";
                 }
-                cout << endl << endl;
+                cout << endl;
 
+                // Подсчет функции активации для наблюдения за ее изменением
+                for (size_t i = 0; i < D.size(); i++) {
+                    Y[i] = activation_func(X_learn[i]);
+                }
+                cout << "Aim func = " << aim_func(D, Y);
+                cout << endl << endl;
             } else {
                 stop = true;
             }

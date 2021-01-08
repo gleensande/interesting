@@ -46,7 +46,7 @@ int main() {
         return 1;
     }
 
-    vector<bool> D;
+    vector<bool> D_learn;
     vector< vector<double> > X_learn;
     vector<double> x_local(2);
     string line;
@@ -55,12 +55,48 @@ int main() {
         x_local[0] = values[0];
         x_local[1] = values[1];
         X_learn.push_back(x_local);
-        D.push_back(values[2]);
+        D_learn.push_back(values[2]);
     }
 
+    learn_data_file.close();
+
+    cout << "Learning:" << endl;
     // создание и обучение персептрона    
     Perceptron P(2);
-    P.learn(X_learn, D, 100);
+    P.learn(X_learn, D_learn, 100);
 
+    // чтение из файла тестовой выборки
+    ifstream test_data_file;
+    test_data_file.open("test_data.dat");
+    if (!test_data_file) {
+        cout << "ERROR: can't open file 'test_data.dat'" << endl;
+        return 1;
+    }
+
+    vector<bool> D_test;
+    vector< vector<double> > X_test;
+    while(getline(test_data_file, line)) {
+        vector<double> values = csv_parser(line, " ");
+        x_local[0] = values[0];
+        x_local[1] = values[1];
+        X_test.push_back(x_local);
+        D_test.push_back(values[2]);
+    }
+    
+    cout << "Testing:" << endl;
+    // тестирование нейрона
+    for (size_t i = 0; i < D_test.size(); i++) {
+        bool result = P.activation_func(X_test[i]);
+        cout << "Neuron res = " << result << ", ";
+        cout << "D = " << D_test[i] << ". ";
+        if (result == D_test[i]) {
+            cout << "Test passed!";
+        } else {
+            cout << "Test not passed!";
+        }
+        cout << endl;
+    }
+    
+    
     return 0;
 }

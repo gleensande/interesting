@@ -1,5 +1,6 @@
 #include "neuron.hpp"
 #include <ctime>
+#include <fstream>
 
 // конструктор нейрона по _inputs_num - количеству входов
 Perceptron::Perceptron(int _inputs_num) {
@@ -41,6 +42,13 @@ double Perceptron::u_summ(vector<double>& X) {
 // обучение, X_learn - вектор входных сигналов размера обучающей выборки (каждый подвектор размера inputs_num), 
 // D - вектор эталонных выходных сигналов размера обучающей выборки, N_max - предельное число циклов обучения
 void Perceptron::learn(vector< vector<double> >& X_learn, vector<bool>& D, int N_max) {
+    ofstream weights_file;
+    weights_file.open("weights.dat");
+    if (!weights_file) {
+        cout << "ERROR: can't open file 'weights.dat'" << endl;
+        return;
+    }
+
     if (D.size() != X_learn.size()) {
         cout << "ERROR: D.size() != X_learn.size()" << endl;
         return;
@@ -54,9 +62,12 @@ void Perceptron::learn(vector< vector<double> >& X_learn, vector<bool>& D, int N
 
     cout << "Start W: ";
     cout << W[inputs_num] << " ";
+    weights_file << W[inputs_num] << " ";
     for (size_t i = 0; i < inputs_num; i++) {
+        weights_file << W[i] << " ";
         cout << W[i] << " ";
     }
+    weights_file << endl;
     cout << endl << endl;
 
     // для подсчета функции активации
@@ -83,9 +94,12 @@ void Perceptron::learn(vector< vector<double> >& X_learn, vector<bool>& D, int N
 
                 cout << "N = " << i << ". ";
                 cout << W[inputs_num] << " ";
+                weights_file << W[inputs_num] << " ";
                 for (size_t i = 0; i < inputs_num; i++) {
+                    weights_file << W[i] << " ";
                     cout << W[i] << " ";
                 }
+                weights_file << endl;
                 cout << endl;
 
                 // Подсчет функции активации для наблюдения за ее изменением
@@ -100,6 +114,7 @@ void Perceptron::learn(vector< vector<double> >& X_learn, vector<bool>& D, int N
         }   
     }
 
+    weights_file.close();
     return;
 }
 

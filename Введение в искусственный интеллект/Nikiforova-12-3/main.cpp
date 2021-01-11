@@ -97,6 +97,8 @@ int main() {
         cout << endl;
     }
     
-    
+    learn_data_file.close();
+    test_data_file.close();
+
     return 0;
 }

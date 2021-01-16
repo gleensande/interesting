@@ -39,5 +39,6 @@ do for [i=1:N] {
     f(x) = -1/(w_2) * (w_1 * x + w_0)
 
     plot f(x) w l ls 2, 'learn_data.dat' using 1:2:3 w p lc var, 'test_data.dat' using 1:2:3 w p lc var
-    pause mouse
+    pause 0.5
 }
+pause mouse

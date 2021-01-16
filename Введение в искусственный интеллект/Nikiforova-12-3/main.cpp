@@ -37,7 +37,12 @@ vector<double> csv_parser(string line, string delimiter) {
     return splited_line;
 }
 
-int main() {
+int main(/*int argc, char** argv*/) {
+    /*if (argc != 2) {
+        cout << "Usage: ./a.out coef" << endl;
+        return 1;
+    }*/
+
     // чтение из файла обучающей выборки
     ifstream learn_data_file;
     learn_data_file.open("learn_data.dat");
@@ -63,7 +68,7 @@ int main() {
     cout << "Learning:" << endl;
     // создание и обучение персептрона    
     Perceptron P(2);
-    P.learn(X_learn, D_learn, 100);
+    P.learn(X_learn, D_learn, 100, 1/*stod(argv[1])*/);
 
     // чтение из файла тестовой выборки
     ifstream test_data_file;

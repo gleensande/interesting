@@ -41,7 +41,7 @@ double Perceptron::u_summ(vector<double>& X) {
 
 // обучение, X_learn - вектор входных сигналов размера обучающей выборки (каждый подвектор размера inputs_num), 
 // D - вектор эталонных выходных сигналов размера обучающей выборки, N_max - предельное число циклов обучения
-void Perceptron::learn(vector< vector<double> >& X_learn, vector<bool>& D, int N_max) {
+void Perceptron::learn(vector< vector<double> >& X_learn, vector<bool>& D, int N_max, double coef) {
     ofstream weights_file;
     weights_file.open("weights.dat");
     if (!weights_file) {
@@ -59,6 +59,7 @@ void Perceptron::learn(vector< vector<double> >& X_learn, vector<bool>& D, int N
         W[i] = rand() % 1000;
         W[i] /= 100;
     }
+    // W = {0.78, 0.63, 7.99};
 
     cout << "Start W: ";
     cout << W[inputs_num] << " ";
@@ -82,14 +83,14 @@ void Perceptron::learn(vector< vector<double> >& X_learn, vector<bool>& D, int N
             if (y != D[k]) {
                 if (y == false) {
                     for (size_t j = 0; j < inputs_num; j++) {
-                        W[j] += X_learn[k][j];
+                        W[j] += coef * X_learn[k][j];
                     }
-                    W[inputs_num] += 1;
+                    W[inputs_num] += coef * 1;
                 } else {
                     for (size_t j = 0; j < inputs_num; j++) {
-                        W[j] -= X_learn[k][j];
+                        W[j] -= coef * X_learn[k][j];
                     }
-                    W[inputs_num] -= 1;
+                    W[inputs_num] -= coef * 1;
                 }
 
                 cout << "N = " << i << ". ";

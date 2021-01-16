@@ -1,11 +1,31 @@
 #include "neuron.hpp"
 #include <ctime>
-#include <fstream>
 
 // конструктор нейрона по _inputs_num - количеству входов
 Perceptron::Perceptron(int _inputs_num) {
     inputs_num = _inputs_num;
     W.resize(inputs_num + 1);
+
+    weights_file.open("weights.dat");
+    if (!weights_file) {
+        cout << "ERROR: can't open file 'weights.dat'" << endl;
+        return;
+    }
+
+    for (size_t i = 0; i < inputs_num + 1; i++) {
+        W[i] = rand() % 1000;
+        W[i] /= 1000;
+    }
+
+    cout << "Start W: ";
+    cout << W[inputs_num] << " ";
+    weights_file << W[inputs_num] << " ";
+    for (size_t i = 0; i < inputs_num; i++) {
+        weights_file << W[i] << " ";
+        cout << W[i] << " ";
+    }
+    weights_file << endl;
+    cout << endl << endl;
 }
 
 // функция активации, X - вектор входных сигналов размера inputs_num
@@ -42,34 +62,10 @@ double Perceptron::u_summ(vector<double>& X) {
 // обучение, X_learn - вектор входных сигналов размера обучающей выборки (каждый подвектор размера inputs_num), 
 // D - вектор эталонных выходных сигналов размера обучающей выборки, N_max - предельное число циклов обучения
 void Perceptron::learn(vector< vector<double> >& X_learn, vector<bool>& D, int N_max, double coef) {
-    ofstream weights_file;
-    weights_file.open("weights.dat");
-    if (!weights_file) {
-        cout << "ERROR: can't open file 'weights.dat'" << endl;
-        return;
-    }
-
     if (D.size() != X_learn.size()) {
         cout << "ERROR: D.size() != X_learn.size()" << endl;
         return;
     }
-
-    srand(time(NULL));
-    for (size_t i = 0; i < inputs_num + 1; i++) {
-        W[i] = rand() % 1000;
-        W[i] /= 100;
-    }
-    // W = {0.78, 0.63, 7.99};
-
-    cout << "Start W: ";
-    cout << W[inputs_num] << " ";
-    weights_file << W[inputs_num] << " ";
-    for (size_t i = 0; i < inputs_num; i++) {
-        weights_file << W[i] << " ";
-        cout << W[i] << " ";
-    }
-    weights_file << endl;
-    cout << endl << endl;
 
     // для подсчета функции активации
     vector<bool> Y(D.size());
@@ -115,7 +111,6 @@ void Perceptron::learn(vector< vector<double> >& X_learn, vector<bool>& D, int N
         }   
     }
 
-    weights_file.close();
     return;
 }
 
@@ -134,4 +129,27 @@ double Perceptron::aim_func(vector<bool>& D, vector<bool>& Y) {
     }
 
     return 0.5 * E;
+}
+
+bool Perceptron::test(vector< vector<double> >& X_test, vector<bool>& D_test) {
+    bool r = true;
+
+    cout << "Testing:" << endl;
+    // тестирование нейрона
+    for (size_t i = 0; i < D_test.size(); i++) {
+        bool result = activation_func(X_test[i]);
+        if (result == D_test[i]) {
+            cout << "1";
+        } else {
+            cout << "0";
+            r = false;
+        }
+    }
+    cout << endl;
+
+    return r;
+}
+
+Perceptron::~Perceptron() {
+    weights_file.close();
 }

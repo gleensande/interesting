@@ -37,37 +37,34 @@ vector<double> csv_parser(string line, string delimiter) {
     return splited_line;
 }
 
-void create_learn_data(vector< vector<double> >* X_learn) {
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        cout << "Usage: ./a.out N" << endl;
+        return 1;
+    }
+    int neurons_num = atoi(argv[1]);
+
     // чтение из файла обучающей выборки
     ifstream learn_data_file;
-    learn_data_file.open("learn_data.dat");
+    learn_data_file.open("coordinates.dat");
     if (!learn_data_file) {
-        cout << "ERROR: can't open file 'learn_data.dat'" << endl;
-        return;
+        cout << "ERROR: can't open file 'coordinates.dat'" << endl;
+        return 1;
     }
 
+    vector< vector<double> > X_learn;
     vector<double> x_local(2);
     string line;
     while(getline(learn_data_file, line)) {
-        vector<double> values = csv_parser(line, "\t");
+        vector<double> values = csv_parser(line, " ");
         x_local[0] = values[0];
         x_local[1] = values[1];
-        X_learn->push_back(x_local);
+        X_learn.push_back(x_local);
     }
-
     learn_data_file.close();
-}
-
-int main(int argc, char** argv) {
-    if (argc != 2) {
-        cout << "Usage ./a.out neurons_num" << endl;
-        return 1;
-    }
-    Network N(stod(argv[1]));
-
-    vector< vector<double> > X_learn;
-    create_learn_data(&X_learn);
-    N.learn(X_learn, 100);
+    
+    Network N(neurons_num);
+    N.learn(X_learn);
     
     return 0;
 }

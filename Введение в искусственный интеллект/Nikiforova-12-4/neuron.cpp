@@ -1,35 +1,83 @@
 #include "neuron.hpp"
-#include <ctime>
-#include <fstream>
 
-// конструктор нейрона по _inputs_num - количеству входов
-void Neuron::set_input_num(int _inputs_num) {
-    inputs_num = _inputs_num;
-    W.resize(inputs_num + 1);
+Neuron::Neuron(int _input_num) {
+    input_num = _input_num;
+    W.resize(input_num);
 }
 
-// функция активации, X - вектор входных сигналов размера inputs_num
-double Neuron::activation_func(vector<double>& X) {
-    if (X.size() != inputs_num) {
-        cout << "ERROR: X.size() != inputs_num" << endl;
-        return 0;
+double Neuron::output_signal(std::vector<double>& X) {
+    double sum = 0.0;
+    for(int i = 0; i < input_num; i++) {
+        sum += W[i] * X[i];
     }
-
-    return u_summ(X);
+    return sum;
 }
 
-// сумма сигналов * на веса u, X - вектор входных сигналов размера inputs_num 
-double Neuron::u_summ(vector<double>& X) {
-    if (X.size() != inputs_num) {
-        cout << "ERROR: X.size() != inputs_num" << endl;
-        return 0;
+void Neuron::change_weights(std::vector<double>& X, double n, double sigma) {
+    for(int i = 0; i < input_num; i++) {
+        W[i] = W[i] + n * exp(-(distance_to_winner * distance_to_winner) / (2 * sigma * sigma)) * (X[i] - W[i]);
     }
+}
 
-    double u = 0;
+int Neuron::get_input_num() {
+    return input_num;
+}
 
-    for (size_t i = 0; i < inputs_num; i++) {
-        u += X[i] * W[i];
+std::vector<double> Neuron::get_weights() {
+    return W;
+}
+
+void Neuron::print_weights() {
+    for(int i = 0; i < W.size(); i++) {
+        std::cout << "W" << i+1 << " = " << W[i] << std::endl;
     }
+}
 
-    return u;
+void Neuron::set_distance_to_winner(int _distance) {
+    distance_to_winner = _distance;
+}
+
+int Neuron::get_distance() {
+    return distance_to_winner;
+}
+
+void Neuron::set_rand_W() {
+    double temp;
+    for(int i = 0; i < input_num; i++) {
+        W[i] = rand() % 6;
+        temp = rand() % 100;
+        temp /= 100;
+        W[i] -= 3;
+        W[i] += temp;
+    }
+    //W = vector_normalize(W);
+}
+
+// Нормализация вектора
+std::vector<double> Neuron::vector_normalize(std::vector<double>& _vector) {
+    double sum = 0.0;
+    std::vector<double> vector = _vector;
+    for(int i = 0; i < vector.size(); i++) {
+        sum += (vector[i] * vector[i]);
+    }
+    double root = sqrt(sum);
+    for(int i = 0; i < vector.size(); i++) {
+        vector[i] /= root;
+    }
+    return vector;
+}
+
+//Эвклидова мера
+double Neuron::calculate_distance(std::vector<double>& _X) {
+    double sum = 0.0;
+    std::vector<double> X = _X;
+    for (int i = 0; i < input_num; i++) {
+        sum += ((X[i] - W[i]) * (X[i] - W[i]));
+    }
+    sum = sqrt(sum);
+    return sum;
+}
+
+void Neuron::print_weights(std::ofstream& weights_file) {
+        weights_file << W[0] << " " << W[1] << std::endl;
 }

@@ -1,21 +1,22 @@
-#pragma once
-#include <vector>
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include "neuron.hpp"
+
+using namespace std;
 
 class Network {
  private:
-    std::vector<Neuron> Neurons;
-    std::ofstream output_file;
-    double n;
-    double sigma;
-    int Swk;
+    vector<Neuron> neurons;
+    ofstream weights_file;
+    double learn_coef;
+    double neighb_level;
  public:
     Network(int neurons_num);
+    void set_rand_weights();
+    double G_func(int neuron_i);
+    void change_weights();
+    void print_current_weights();
+    void learn(vector< pair<double, double> >& X_learn);
     ~Network();
-    int define_winner(std::vector<double>& _X);
-    void learn(std::vector<std::vector <double> >& X_learn);
-    void print_neurons_weights(std::ofstream& _file);
-    void check_koeffs();
 };

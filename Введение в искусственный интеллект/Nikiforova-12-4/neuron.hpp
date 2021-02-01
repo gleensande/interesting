@@ -1,26 +1,21 @@
-#pragma once
-#include <vector>
-#include <random>
-#include <cmath>
 #include <iostream>
-#include <fstream>
+
+using namespace std;
 
 class Neuron {
  private:
-    std::vector<double> W;
-    int input_num;
-    int distance_to_winner;
+    pair<double, double> weights;
+    pair<double, double> current_x;
+    int real_i;
+    double potential;
  public:
-    Neuron(int _input_num);
-    double output_signal(std::vector<double>& _X);
-    void change_weights(std::vector<double>& _X, double _n, double _sigma);
-    int get_input_num();
-    std::vector<double> get_weights();
-    void print_weights();
-    void set_rand_W();
-    double calculate_distance(std::vector<double>& _X);
-    std::vector<double> vector_normalize(std::vector<double>& _vector);
-    void set_distance_to_winner(int _distance);
-    int get_distance();
-    void print_weights(std::ofstream& file);
+    void set_weights(pair<double, double> new_weights);
+    void set_current_x(pair<double, double> new_current_x);
+    double distance();
+    void set_real_i(int new_real_i);
+    int get_real_i();
+    pair<double, double> diff();
+    pair<double, double> get_weights();
+    void set_potential(double new_potential);
+    double get_potential();
 };

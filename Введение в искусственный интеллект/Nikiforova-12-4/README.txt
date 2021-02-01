@@ -1,13 +1,11 @@
 Компиляция программы:
-chmod +x compile.sh
-./compile.sh
+    chmod +x compile.sh
+    ./compile.sh
+
 Запуск:
-./a.out
+    ./a.out
 
-Визуализация результата работы (кругами обозначаются точки выборки, треугольниками - веса нейронов)
-gnuplot -p plot_window.gnu 
-(Запуск в окне gnuplot)
-
-или же 
-gnuplot plot_gif.gnu
-(создание файла results.gif с зацикленной гиф анимацией)
+Визуализация результата работы:
+    gnuplot -p plot_window.gnu
+    
+Круги - точки выборки, треугольники - веса нейронов

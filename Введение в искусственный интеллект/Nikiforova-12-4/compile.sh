@@ -1,1 +1,1 @@
-c++ main.cpp neuron.cpp network.cpp
+c++ main.cpp network.cpp neuron.cpp

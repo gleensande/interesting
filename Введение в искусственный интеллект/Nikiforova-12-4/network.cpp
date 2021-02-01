@@ -1,66 +1,110 @@
 #include "network.hpp"
-#define INPUT_NUMS 2
-#define N 0.5
-#define SIGMA 0.4
-#define SWK 4
+#include <random>
+#include <ctime>
+#include <algorithm>
+#include <functional>
+
+#define LEARN_COEF_MAX 5.0
+#define LEARN_COEF_MIN 0.1
+#define NEIGHB_LEVEL_MAX 5.0
+#define NEIGHB_LEVEL_MIN 0.01
+#define POTENTIAL_MIN 0.75
+#define POTENTIAL_MAX 1
+
+using namespace std;
 
 Network::Network(int neurons_num) {
-    // Файл для записи выходных данных 
-    output_file.open("test.dat");
-    if (!output_file) {
-        std::cout << "ERROR: can't open file 'test.dat'" << std::endl;
-        return;
+    // srand(time(NULL));
+    neurons.resize(neurons_num);
+    for (int i = 0; i < neurons_num; i++) {
+        neurons[i].set_real_i(i);
+        neurons[i].set_potential(POTENTIAL_MIN);
     }
+    weights_file.open("weights.dat");
+    learn_coef = LEARN_COEF_MAX;
+    neighb_level = NEIGHB_LEVEL_MAX;
+}
 
-    srand(time(NULL));
-    for(int i = 0; i < neurons_num; i++) {
-        Neuron Ner(INPUT_NUMS);
-        Ner.set_rand_W();
-        Neurons.push_back(Ner);
+void Network::set_rand_weights() {
+    double x_1, x_2;
+    for (int i = 0; i < neurons.size(); i++) {
+        x_1 = rand() % 4 - 2;    // по X_1 = [-2, 2]
+        x_2 = rand() % 5 - 2;    // по X_2 = [-2, 3]
+
+        neurons[i].set_weights(make_pair(x_1, x_2));
     }
+}
 
-    n = neurons_num;
+void Network::print_current_weights() {
+    pair<double, double> weights;
+    for (int i = 0; i < neurons.size(); i++) {
+        weights = neurons[i].get_weights();
+        weights_file << weights.first << " " << weights.second << endl;
+    }
+    weights_file << endl;
+}
+
+double Network::G_func(int neuron_i) {
+    return exp(-neuron_i / neighb_level);
+}
+
+void Network::change_weights() {
+    pair<double, double> w;
+
+    for (int i = 0; i < neurons.size(); i++) {
+        w = neurons[i].get_weights();
+
+        // ПОТЕНЦИАЛЫ
+        /*if (i == 0) {
+            neurons[i].set_potential(neurons[i].get_potential() - POTENTIAL_MIN);
+        } else {
+            if (neurons[i].get_potential() < 1) {
+                neurons[i].set_potential(neurons[i].get_potential() + 1.0 / ((double)neurons.size()) );
+            }
+        }*/
+
+        w.first += learn_coef * G_func(i) * neurons[i].diff().first;
+        w.second += learn_coef * G_func(i) * neurons[i].diff().second;
+
+        neurons[i].set_weights(w);
+    }
+}
+
+void Network::learn(vector< pair<double, double> >& X_learn) {
+    set_rand_weights();
+    print_current_weights();
+
+    int winner_index;
+    for (int i = 0; i < X_learn.size(); i++) {
+        // устанавливаем всем нейронам текущее значение сигналов
+        for (int j = 0; j < neurons.size(); j++) {
+            neurons[j].set_current_x(X_learn[i]);
+        }
+
+        // сортируем все нейроны по расстоянию до сигнала с помощью лямбда-функции
+        std::sort(neurons.begin(), neurons.end(), [](Neuron a, Neuron b) {
+            return a.distance() < b.distance();
+        });
+
+        // cout << endl << "После сортировки" << endl; 
+        // for (int j = 0; j < neurons.size(); j++) {
+        //     cout << "\tdistance " << j << " (" << neurons[j].get_real_i() <<  ") = " << 
+        //     neurons[j].distance() << ", \tpotential = " << neurons[j].get_potential() << endl;
+        // }
+        // cout << endl << endl;
+
+        // меняем веса победителя и соседей
+        change_weights();
+
+        // выводим веса в файл, чтобы потом визуализировать обучение
+        print_current_weights();
+
+        // уменьшаем коэффициенты learn_coef и neighbourhood_level
+        learn_coef = LEARN_COEF_MAX * pow(LEARN_COEF_MIN / LEARN_COEF_MAX, ((double)(i + 1)) / ((double)X_learn.size()));
+        neighb_level = NEIGHB_LEVEL_MAX * pow(NEIGHB_LEVEL_MIN / NEIGHB_LEVEL_MAX, ((double)(i + 1)) / ((double)X_learn.size()));
+    }
 }
 
 Network::~Network() {
-    output_file.close();
-}
-
-// Определение нейрона-победителя и переопределение его весов
-int Network::define_winner(std::vector<double>& X) {
-    double min_distance = 100000.0;
-    double temp_distance = 0.0;
-    int winner_index = 0;
-    for(int i = 0; i < Neurons.size(); i++) {
-        temp_distance = Neurons[i].calculate_distance(X);
-        if(temp_distance < min_distance) {
-            min_distance = temp_distance;
-            winner_index = i;
-        }
-    }
-    output_file << X[0] << " " << X[1] << " " << winner_index << " " << std::endl;
-    return winner_index;
-}
-
-void Network::learn(std::vector<std::vector <double> >& X_learn) {
-    std::vector<double> X;
-    int winner_index;
-    std::ofstream weights_file;
-    
-    weights_file.open("weights.dat");
-    if (!weights_file) {
-        std::cout << "ERROR: can't open file 'weights.dat'" << std::endl;
-        return;
-    }
-
-    for(int i = 0; i < X_learn.size(); i++) {
-        //...
-    }
     weights_file.close();
-}
-
-void Network::print_neurons_weights(std::ofstream& weights_file) {
-    for(int i = 0; i < Neurons.size(); i++) {
-        Neurons[i].print_weights(weights_file);
-    }
 }

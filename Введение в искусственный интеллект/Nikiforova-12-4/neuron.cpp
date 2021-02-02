@@ -25,9 +25,9 @@ void Neuron::set_current_x(pair<double, double> new_current_x) {
 
 double Neuron::distance() {
     // ПОТЕНЦИАЛЫ
-    /*if (potential < POTENTIAL_MIN) {
+    if (potential < POTENTIAL_MIN) {
         return 100;
-    }*/
+    }
 
     return sqrt(
         (weights.first - current_x.first) * (weights.first - current_x.first) +

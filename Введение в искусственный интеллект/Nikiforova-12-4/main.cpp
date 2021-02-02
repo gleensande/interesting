@@ -29,5 +29,7 @@ int main(int argc, char** argv) {
     vector< pair<double, double> > X_learn = read_learn_data();
 
     Network N(atoi(argv[1]));
-    N.learn(X_learn);
+    for (int i = 0; i < 5; i++) {
+        N.learn(X_learn, i, 5, ((i < 2) ? true : false));
+    }
 }

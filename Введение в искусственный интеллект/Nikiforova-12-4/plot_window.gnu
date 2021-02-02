@@ -26,7 +26,7 @@ set macro
 
 set style increment user
 
-N = system("wc -l coordinates.dat")
+N = system("wc -l coordinates.dat") * 5
 
 do for [i=0:N] {
     # номер итерации обучения
@@ -36,7 +36,7 @@ do for [i=0:N] {
     set label 10 at -1.5,-1.5 LABEL front center
    
 
-    plot 'coordinates.dat' u 1:2 w p ls 1, 'weights.dat' every :::i::i w p ls 2
+    plot 'coordinates.dat' u 1:2 w p ls 1, 'weights.dat' every :::i::i using 2:3 w p ls 2, 'weights.dat' every :::i::i using 2:3:1 with labels notitle 
 
     pause 0.1
 }
